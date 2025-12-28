@@ -1,0 +1,42 @@
+-- Crear tabla plataforma
+
+CREATE TABLE plataformas (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  descripcion VARCHAR(255) NULL,
+  url VARCHAR(255) NULL,
+  activo TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_plataformas_nombre (nombre)
+) ENGINE=InnoDB;
+
+-- INSERT plataforma, datos de prueba
+
+INSERT INTO plataformas (nombre, descripcion, url)
+VALUES
+('Netflix', 'Streaming de series y películas', 'https://www.netflix.com'),
+('Disney+', 'Contenido Disney, Marvel, Pixar', 'https://www.disneyplus.com'),
+('Amazon Prime Video', 'Streaming de Amazon', 'https://www.primevideo.com');
+
+-- Crear tabla directores
+
+CREATE TABLE directores (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  apellidos VARCHAR(120) NOT NULL,
+  fecha_nacimiento DATE NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- INSERT directores, datos de prueba
+
+INSERT INTO directores (nombre, apellidos, fecha_nacimiento) VALUES
+('Vince', 'Gilligan', '1967-02-10'),
+('David', 'Benioff', '1970-09-25'),
+('Shonda', 'Rhimes', '1970-01-13');
+
+
+
+

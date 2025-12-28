@@ -3,28 +3,44 @@ require_once __DIR__ . "/../../controllers/PlataformaController.php";
 $controller = new PlataformaController();
 
 $mensaje = null;
+$tipo = "success";
 
 if (isset($_POST["platformName"])) {
-    $name = trim($_POST["platformName"]);
+  $name = trim($_POST["platformName"]);
 
-    // Validación
-    if ($name === "") {
-        $mensaje = "❌ El nombre no puede estar vacío.";
-    } else {
-        $ok = $controller->createPlataforma($name);
-        $mensaje = $ok ? "✅ Plataforma creada correctamente." : "❌ Error al crear la plataforma.";
-    }
+  if ($name === "") {
+    $mensaje = "El nombre no puede estar vacío.";
+    $tipo = "danger";
+  } else {
+    $ok = $controller->createPlataforma($name);
+    $mensaje = $ok ? "Plataforma creada correctamente." : "No se pudo crear la plataforma.";
+    $tipo = $ok ? "success" : "danger";
+  }
 }
+
+$title = "Plataformas - Crear";
+require_once __DIR__ . "/../partials/header.php";
 ?>
 
-<h1>Crear plataforma</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Crear plataforma</h1>
+  <a class="btn btn-outline-secondary" href="list.php">Volver</a>
+</div>
 
-<form method="post" action="">
-    <label>Nombre:</label>
-    <input type="text" name="platformName" required>
-    <button type="submit">Crear</button>
-</form>
+<?php if ($mensaje): ?>
+  <div class="alert alert-<?= $tipo ?>"><?= htmlspecialchars($mensaje) ?></div>
+<?php endif; ?>
 
-<?php if ($mensaje) echo "<p>$mensaje</p>"; ?>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post" action="">
+      <div class="mb-3">
+        <label class="form-label">Nombre</label>
+        <input class="form-control" type="text" name="platformName" required>
+      </div>
+      <button class="btn btn-primary" type="submit">Guardar</button>
+    </form>
+  </div>
+</div>
 
-<p><a href="list.php">Volver</a></p>
+<?php require_once __DIR__ . "/../partials/footer.php"; ?>

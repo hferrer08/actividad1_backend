@@ -3,12 +3,12 @@ require_once __DIR__ . "/../../controllers/PlataformaController.php";
 $controller = new PlataformaController();
 
 if (!isset($_POST["id"])) {
-    die("❌ Falta el id por POST.");
+  header("Location: list.php");
+  exit;
 }
 
 $id = (int)$_POST["id"];
-$ok = $controller->deletePlataforma($id);
+$controller->deletePlataforma($id);
 
-echo $ok ? "✅ Borrado correcto." : "❌ No se pudo borrar.";
-
-echo '<p><a href="list.php">Volver al listado</a></p>';
+header("Location: list.php");
+exit;
