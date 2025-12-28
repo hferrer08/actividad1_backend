@@ -21,6 +21,7 @@ if (!isset($title)) $title = "Actividad 1";
       <a class="nav-link" href="/actividad1_backend/views/plataformas/list.php">Plataformas</a>
       <a class="nav-link" href="/actividad1_backend/views/directores/list.php">Directores</a>
       <a class="nav-link" href="/actividad1_backend/views/actores/list.php">Actores</a>
+      <a class="nav-link" href="/actividad1_backend/views/idiomas/list.php">Idiomas</a>
     </div>
   </div>
 </nav>
