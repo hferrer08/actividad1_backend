@@ -15,14 +15,14 @@ $plataformas = $controller->listPlataformas();
 $actores = $controller->listActores();
 $idiomas = $controller->listIdiomas();
 
-// seleccionados (para mantener selección si falla validación)
+// seleccionados (para mantener checks si falla validación)
 $selectedPlataformas = [];
 $selectedActores = [];
 $selectedAudio = [];
 $selectedSub = [];
 
-function selectedOpt(array $selected, int $id): string {
-    return in_array($id, $selected, true) ? "selected" : "";
+function isChecked(array $selectedIds, int $id): string {
+    return in_array($id, $selectedIds, true) ? "checked" : "";
 }
 
 if (isset($_POST["titulo"])) {
@@ -31,6 +31,7 @@ if (isset($_POST["titulo"])) {
     $anio = isset($_POST["anio"]) ? trim($_POST["anio"]) : "";
     $temporadas = isset($_POST["temporadas"]) ? trim($_POST["temporadas"]) : "";
 
+    // arrays desde checkboxes
     $selectedPlataformas = isset($_POST["plataformas"]) ? array_map("intval", (array)$_POST["plataformas"]) : [];
     $selectedActores     = isset($_POST["actores"]) ? array_map("intval", (array)$_POST["actores"]) : [];
     $selectedAudio       = isset($_POST["idiomas_audio"]) ? array_map("intval", (array)$_POST["idiomas_audio"]) : [];
@@ -81,6 +82,7 @@ require_once __DIR__ . "/../partials/header.php";
 <div class="card shadow-sm">
   <div class="card-body">
     <form method="post" action="">
+
       <div class="mb-3">
         <label class="form-label">Título</label>
         <input class="form-control" name="titulo" value="<?= htmlspecialchars($titulo) ?>" required>
@@ -102,51 +104,125 @@ require_once __DIR__ . "/../partials/header.php";
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Plataformas (multi)</label>
-          <select class="form-select" name="plataformas[]" multiple size="8">
-            <?php foreach ($plataformas as $p): $pid = (int)$p->getId(); ?>
-              <option value="<?= $pid ?>" <?= selectedOpt($selectedPlataformas, $pid) ?>>
-                <?= htmlspecialchars($p->getNombre()) ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-        </div>
+      <hr class="my-4">
 
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Actores/Actrices (multi)</label>
-          <select class="form-select" name="actores[]" multiple size="8">
-            <?php foreach ($actores as $a): $aid = (int)$a->getId(); ?>
-              <option value="<?= $aid ?>" <?= selectedOpt($selectedActores, $aid) ?>>
-                <?= htmlspecialchars(trim($a->getNombre() . " " . $a->getApellidos())) ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
+      <!-- PLATAFORMAS -->
+      <h5 class="mb-2">Plataformas</h5>
+      <div class="card shadow-sm mb-4">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0 align-middle">
+            <thead class="table-light">
+              <tr>
+                <th style="width:70px;">Sel</th>
+                <th>Nombre</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($plataformas as $p): $pid = (int)$p->getId(); ?>
+                <tr>
+                  <td>
+                    <input class="form-check-input" type="checkbox"
+                           name="plataformas[]" value="<?= $pid ?>"
+                           <?= isChecked($selectedPlataformas, $pid) ?>>
+                  </td>
+                  <td><?= htmlspecialchars($p->getNombre()) ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Idiomas Audio (multi)</label>
-          <select class="form-select" name="idiomas_audio[]" multiple size="8">
-            <?php foreach ($idiomas as $i): $iid = (int)$i->getId(); ?>
-              <option value="<?= $iid ?>" <?= selectedOpt($selectedAudio, $iid) ?>>
-                <?= htmlspecialchars($i->getNombre() . " (" . $i->getCodigo() . ")") ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
+      <!-- ACTORES -->
+      <h5 class="mb-2">Actores/Actrices</h5>
+      <div class="card shadow-sm mb-4">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0 align-middle">
+            <thead class="table-light">
+              <tr>
+                <th style="width:70px;">Sel</th>
+                <th>Nombre</th>
+                <th>Apellidos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($actores as $a): $aid = (int)$a->getId(); ?>
+                <tr>
+                  <td>
+                    <input class="form-check-input" type="checkbox"
+                           name="actores[]" value="<?= $aid ?>"
+                           <?= isChecked($selectedActores, $aid) ?>>
+                  </td>
+                  <td><?= htmlspecialchars($a->getNombre()) ?></td>
+                  <td><?= htmlspecialchars($a->getApellidos()) ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
         </div>
+      </div>
 
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Idiomas Subtítulos (multi)</label>
-          <select class="form-select" name="idiomas_sub[]" multiple size="8">
-            <?php foreach ($idiomas as $i): $iid = (int)$i->getId(); ?>
-              <option value="<?= $iid ?>" <?= selectedOpt($selectedSub, $iid) ?>>
-                <?= htmlspecialchars($i->getNombre() . " (" . $i->getCodigo() . ")") ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
+      <!-- IDIOMAS AUDIO -->
+      <h5 class="mb-2">Idiomas de Audio</h5>
+      <div class="card shadow-sm mb-4">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0 align-middle">
+            <thead class="table-light">
+              <tr>
+                <th style="width:70px;">Sel</th>
+                <th>Nombre</th>
+                <th style="width:120px;">Código</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($idiomas as $i): $iid = (int)$i->getId(); ?>
+                <tr>
+                  <td>
+                    <input class="form-check-input" type="checkbox"
+                           name="idiomas_audio[]" value="<?= $iid ?>"
+                           <?= isChecked($selectedAudio, $iid) ?>>
+                  </td>
+                  <td><?= htmlspecialchars($i->getNombre()) ?></td>
+                  <td><?= htmlspecialchars($i->getCodigo()) ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-body py-2">
+          <div class="form-text">Selecciona los idiomas disponibles como audio.</div>
+        </div>
+      </div>
+
+      <!-- IDIOMAS SUB -->
+      <h5 class="mb-2">Idiomas de Subtítulos</h5>
+      <div class="card shadow-sm mb-4">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0 align-middle">
+            <thead class="table-light">
+              <tr>
+                <th style="width:70px;">Sel</th>
+                <th>Nombre</th>
+                <th style="width:120px;">Código</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($idiomas as $i): $iid = (int)$i->getId(); ?>
+                <tr>
+                  <td>
+                    <input class="form-check-input" type="checkbox"
+                           name="idiomas_sub[]" value="<?= $iid ?>"
+                           <?= isChecked($selectedSub, $iid) ?>>
+                  </td>
+                  <td><?= htmlspecialchars($i->getNombre()) ?></td>
+                  <td><?= htmlspecialchars($i->getCodigo()) ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-body py-2">
+          <div class="form-text">Selecciona los idiomas disponibles como subtítulos.</div>
         </div>
       </div>
 
