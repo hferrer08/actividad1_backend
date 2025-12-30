@@ -73,6 +73,115 @@ INSERT INTO idiomas (nombre, codigo) VALUES
 ('Inglés', 'en'),
 ('Francés', 'fr');
 
+-- Crear tabla series
+
+CREATE TABLE series (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  titulo VARCHAR(150) NOT NULL,
+  sinopsis TEXT NULL,
+  anio INT NULL,
+  temporadas INT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabla intermedia Serie_Plataforma
+
+CREATE TABLE serie_plataforma (
+  serie_id INT NOT NULL,
+  plataforma_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (serie_id, plataforma_id),
+  CONSTRAINT fk_sp_serie
+    FOREIGN KEY (serie_id) REFERENCES series(id) ON DELETE CASCADE,
+  CONSTRAINT fk_sp_plataforma
+    FOREIGN KEY (plataforma_id) REFERENCES plataformas(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Tabla intermedia Serie_Actor
+
+CREATE TABLE serie_actor (
+  serie_id INT NOT NULL,
+  actor_id INT UNSGINED NOT NULL,
+  PRIMARY KEY (serie_id, actor_id),
+  FOREIGN KEY (serie_id) REFERENCES series(id) ON DELETE CASCADE,
+  FOREIGN KEY (actor_id) REFERENCES actores(id) ON DELETE CASCADE
+);
+
+-- Tabla intermedia Serie_Idioma_Audio
+
+CREATE TABLE serie_idioma_audio (
+  serie_id INT NOT NULL,
+  idioma_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (serie_id, idioma_id),
+  FOREIGN KEY (serie_id) REFERENCES series(id) ON DELETE CASCADE,
+  FOREIGN KEY (idioma_id) REFERENCES idiomas(id) ON DELETE CASCADE
+);
+
+-- Tabla intermedia Serie_Idioma_Subtitulos
+
+
+CREATE TABLE serie_idioma_sub (
+  serie_id INT NOT NULL,
+  idioma_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (serie_id, idioma_id),
+  FOREIGN KEY (serie_id) REFERENCES series(id) ON DELETE CASCADE,
+  FOREIGN KEY (idioma_id) REFERENCES idiomas(id) ON DELETE CASCADE
+);
+
+-- INSERT DATOS DE PRUEBA
+
+-- SERIE
+
+INSERT INTO series (titulo, sinopsis, anio, temporadas)
+VALUES (
+  'Breaking Bad',
+  'Un profesor de química se convierte en fabricante de metanfetaminas',
+  2008,
+  5
+);
+
+-- SERIE_PLATAFORMA
+
+INSERT INTO serie_plataforma (serie_id, plataforma_id)
+VALUES (1, 1);
+
+-- SERIE_ACTOR
+
+INSERT INTO serie_actor (serie_id, actor_id)
+VALUES (1, 1);
+
+-- SERIE_IDIOMA_AUDIO
+
+INSERT INTO serie_idioma_audio (serie_id, idioma_id)
+VALUES (1, 1);
+
+-- SERIE_IDIOMA_SUB
+
+INSERT INTO serie_idioma_sub (serie_id, idioma_id)
+VALUES (1, 2);
+
+
+-- COMPROBAR 
+
+SELECT s.titulo, p.nombre AS plataforma
+FROM series s
+JOIN serie_plataforma sp ON sp.serie_id = s.id
+JOIN plataformas p ON p.id = sp.plataforma_id;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
