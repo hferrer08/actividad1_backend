@@ -16,7 +16,7 @@ if (!isset($title)) $title = "Actividad 1";
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand" href="/actividad1_backend/index.html">Actividad 1</a>
+    <a class="navbar-brand" href="/actividad1_backend/index.php">Actividad 1</a>
     <div class="navbar-nav">
       <a class="nav-link" href="/actividad1_backend/views/plataformas/list.php">Plataformas</a>
       <a class="nav-link" href="/actividad1_backend/views/directores/list.php">Directores</a>
