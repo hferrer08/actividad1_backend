@@ -14,18 +14,20 @@ if (!$director) die("❌ No existe el director con ese id.");
 $nombre = $director->getNombre();
 $apellidos = $director->getApellidos();
 $fecha = $director->getFechaNacimiento() ?: "";
+$nacionalidad = $director->getNacionalidad() ?:"";
 
 if (isset($_POST["directorId"]) && isset($_POST["nombre"]) && isset($_POST["apellidos"])) {
     $pid = (int)$_POST["directorId"];
     $nombre = trim($_POST["nombre"]);
     $apellidos = trim($_POST["apellidos"]);
     $fecha = isset($_POST["fecha_nacimiento"]) ? trim($_POST["fecha_nacimiento"]) : "";
+    $nacionalidad = isset($_POST["nacionalidad"]) ? trim($_POST["nacionalidad"]) : "";
 
     if ($nombre === "" || $apellidos === "") {
         $mensaje = "Nombre y apellidos son obligatorios.";
         $tipo = "danger";
     } else {
-        $ok = $controller->updateDirector($pid, $nombre, $apellidos, $fecha);
+        $ok = $controller->updateDirector($pid, $nombre, $apellidos, $fecha, $nacionalidad);
         $mensaje = $ok ? "Director modificado correctamente." : "No se pudo modificar el director.";
         $tipo = $ok ? "success" : "danger";
 
@@ -68,6 +70,11 @@ require_once __DIR__ . "/../partials/header.php";
         <label class="form-label">Fecha de nacimiento</label>
         <input class="form-control" type="date" name="fecha_nacimiento" value="<?= htmlspecialchars($fecha) ?>">
       </div>
+
+      <div class="mb-3">
+  <label class="form-label">Nacionalidad</label>
+  <input class="form-control" name="nacionalidad" value="<?= htmlspecialchars($nacionalidad) ?>">
+</div>
 
       <button class="btn btn-primary" type="submit">Guardar cambios</button>
       <a class="btn btn-outline-secondary" href="list.php">Cancelar</a>

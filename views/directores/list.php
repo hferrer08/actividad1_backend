@@ -28,6 +28,7 @@ function formatDateDMY($date) {
             <th>Nombre</th>
             <th>Apellidos</th>
             <th style="width:160px;">Nacimiento</th>
+            <th>Nacionalidad</th>
             <th style="width:220px;" class="text-end">Acciones</th>
           </tr>
         </thead>
@@ -38,6 +39,7 @@ function formatDateDMY($date) {
               <td><?= htmlspecialchars($d->getNombre()) ?></td>
               <td><?= htmlspecialchars($d->getApellidos()) ?></td>
               <td><?= formatDateDMY($d->getFechaNacimiento()) ?></td>
+              <td><?= htmlspecialchars($d->getNacionalidad()) ?></td>
               <td class="text-end">
                 <a class="btn btn-sm btn-outline-secondary" href="edit.php?id=<?= $d->getId() ?>">Editar</a>
 

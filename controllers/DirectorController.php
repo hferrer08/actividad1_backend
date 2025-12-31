@@ -9,10 +9,10 @@ class DirectorController
         return $model->getAll();
     }
 
-    public function createDirector($nombre, $apellidos, $fechaNacimiento)
+    public function createDirector($nombre, $apellidos, $fechaNacimiento, $nacionalidad)
     {
         $model = new Director();
-        return $model->create($nombre, $apellidos, $fechaNacimiento);
+        return $model->create($nombre, $apellidos, $fechaNacimiento, $nacionalidad);
     }
 
     public function getDirector($id)
@@ -21,10 +21,10 @@ class DirectorController
         return $model->getById($id);
     }
 
-    public function updateDirector($id, $nombre, $apellidos, $fechaNacimiento)
+    public function updateDirector($id, $nombre, $apellidos, $fechaNacimiento, $nacionalidad)
     {
         $model = new Director();
-        return $model->update($id, $nombre, $apellidos, $fechaNacimiento);
+        return $model->update($id, $nombre, $apellidos, $fechaNacimiento, $nacionalidad);
     }
 
     public function deleteDirector($id)
