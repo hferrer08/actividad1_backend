@@ -83,7 +83,6 @@ require_once __DIR__ . "/../partials/header.php";
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
     <h1 class="h3 mb-0">Editar serie</h1>
-    <div class="text-muted">ID: <?= (int)$id ?></div>
   </div>
   <a class="btn btn-outline-secondary" href="list.php">Volver</a>
 </div>

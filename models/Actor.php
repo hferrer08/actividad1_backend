@@ -6,13 +6,15 @@ class Actor
     private $nombre;
     private $apellidos;
     private $fechaNacimiento;
+    private $nacionalidad;
 
-    public function __construct($id = null, $nombre = null, $apellidos = null, $fechaNacimiento = null)
+    public function __construct($id = null, $nombre = null, $apellidos = null, $fechaNacimiento = null, $nacionalidad = null)
     {
         $this->id = $id;
         $this->nombre = $nombre;
         $this->apellidos = $apellidos;
         $this->fechaNacimiento = $fechaNacimiento;
+        $this->nacionalidad = $nacionalidad;
     }
 
     // Getters
@@ -20,12 +22,14 @@ class Actor
     public function getNombre() { return $this->nombre; }
     public function getApellidos() { return $this->apellidos; }
     public function getFechaNacimiento() { return $this->fechaNacimiento; }
+    public function getNacionalidad() { return $this->nacionalidad; }
 
     // Setters
     public function setId($id) { $this->id = $id; }
     public function setNombre($nombre) { $this->nombre = $nombre; }
     public function setApellidos($apellidos) { $this->apellidos = $apellidos; }
     public function setFechaNacimiento($fecha) { $this->fechaNacimiento = $fecha; }
+    public function setNacionalidad($nacionalidad) { $this->nacionalidad = $nacionalidad; }
 
     private function connect()
     {
@@ -44,7 +48,7 @@ class Actor
     public function getAll()
     {
         $pdo = $this->connect();
-        $stmt = $pdo->prepare("SELECT id, nombre, apellidos, fecha_nacimiento FROM actores ORDER BY id");
+        $stmt = $pdo->prepare("SELECT id, nombre, apellidos, fecha_nacimiento, nacionalidad FROM actores ORDER BY id");
         $stmt->execute();
 
         $items = [];
@@ -53,7 +57,8 @@ class Actor
                 $row["id"],
                 $row["nombre"],
                 $row["apellidos"],
-                $row["fecha_nacimiento"]
+                $row["fecha_nacimiento"],
+                $row["nacionalidad"]
             );
         }
         return $items;
@@ -62,27 +67,27 @@ class Actor
     public function getById($id)
     {
         $pdo = $this->connect();
-        $stmt = $pdo->prepare("SELECT id, nombre, apellidos, fecha_nacimiento FROM actores WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT id, nombre, apellidos, fecha_nacimiento, nacionalidad FROM actores WHERE id = ?");
         $stmt->execute([$id]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) return null;
 
-        return new Actor($row["id"], $row["nombre"], $row["apellidos"], $row["fecha_nacimiento"]);
+        return new Actor($row["id"], $row["nombre"], $row["apellidos"], $row["fecha_nacimiento"],  $row["nacionalidad"]);
     }
 
-    public function create($nombre, $apellidos, $fechaNacimiento)
+    public function create($nombre, $apellidos, $fechaNacimiento, $nacionalidad)
     {
         $pdo = $this->connect();
-        $stmt = $pdo->prepare("INSERT INTO actores (nombre, apellidos, fecha_nacimiento) VALUES (?, ?, ?)");
-        return $stmt->execute([$nombre, $apellidos, $fechaNacimiento ?: null]);
+        $stmt = $pdo->prepare("INSERT INTO actores (nombre, apellidos, fecha_nacimiento, nacionalidad) VALUES (?,  ?, ?, ?)");
+        return $stmt->execute([$nombre, $apellidos, $fechaNacimiento ?: null, $nacionalidad ?: null]);
     }
 
-    public function update($id, $nombre, $apellidos, $fechaNacimiento)
+    public function update($id, $nombre, $apellidos, $fechaNacimiento, $nacionalidad)
     {
         $pdo = $this->connect();
-        $stmt = $pdo->prepare("UPDATE actores SET nombre = ?, apellidos = ?, fecha_nacimiento = ? WHERE id = ?");
-        return $stmt->execute([$nombre, $apellidos, $fechaNacimiento ?: null, $id]);
+        $stmt = $pdo->prepare("UPDATE actores SET nombre = ?, apellidos = ?, fecha_nacimiento = ?, nacionalidad = ? WHERE id = ?");
+        return $stmt->execute([$nombre, $apellidos, $fechaNacimiento ?: null, $nacionalidad ?: null, $id]);
     }
 
     public function delete($id)

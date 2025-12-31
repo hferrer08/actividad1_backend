@@ -9,10 +9,10 @@ class ActorController
         return $model->getAll();
     }
 
-    public function createActor($nombre, $apellidos, $fechaNacimiento)
+    public function createActor($nombre, $apellidos, $fechaNacimiento, $nacionalidad)
     {
         $model = new Actor();
-        return $model->create($nombre, $apellidos, $fechaNacimiento);
+        return $model->create($nombre, $apellidos, $fechaNacimiento, nacionalidad: $nacionalidad);
     }
 
     public function getActor($id)
@@ -21,10 +21,10 @@ class ActorController
         return $model->getById($id);
     }
 
-    public function updateActor($id, $nombre, $apellidos, $fechaNacimiento)
+    public function updateActor($id, $nombre, $apellidos, $fechaNacimiento, $nacionalidad)
     {
         $model = new Actor();
-        return $model->update($id, $nombre, $apellidos, $fechaNacimiento);
+        return $model->update($id, $nombre, $apellidos, $fechaNacimiento, $nacionalidad);
     }
 
     public function deleteActor($id)

@@ -8,17 +8,19 @@ $tipo = "success";
 $nombre = "";
 $apellidos = "";
 $fecha = "";
+$nacionalidad = "";
 
 if (isset($_POST["nombre"]) && isset($_POST["apellidos"])) {
     $nombre = trim($_POST["nombre"]);
     $apellidos = trim($_POST["apellidos"]);
     $fecha = isset($_POST["fecha_nacimiento"]) ? trim($_POST["fecha_nacimiento"]) : "";
+    
 
     if ($nombre === "" || $apellidos === "") {
         $mensaje = "Nombre y apellidos son obligatorios.";
         $tipo = "danger";
     } else {
-        $ok = $controller->createActor($nombre, $apellidos, $fecha);
+        $ok = $controller->createActor($nombre, $apellidos, $fecha,  $nacionalidad);
         $mensaje = $ok ? "Actor creado correctamente." : "No se pudo crear el actor.";
         $tipo = $ok ? "success" : "danger";
 
@@ -57,6 +59,11 @@ require_once __DIR__ . "/../partials/header.php";
         <input class="form-control" type="date" name="fecha_nacimiento" value="<?= htmlspecialchars($fecha) ?>">
         <div class="form-text">Opcional.</div>
       </div>
+
+      <div class="mb-3">
+  <label class="form-label">Nacionalidad</label>
+  <input class="form-control" name="nacionalidad" value="<?= htmlspecialchars($nacionalidad) ?>">
+</div>
 
       <button class="btn btn-primary" type="submit">Guardar</button>
       <a class="btn btn-outline-secondary" href="list.php">Cancelar</a>

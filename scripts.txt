@@ -168,6 +168,15 @@ FROM series s
 JOIN serie_plataforma sp ON sp.serie_id = s.id
 JOIN plataformas p ON p.id = sp.plataforma_id;
 
+-- Agregar nacionalidad en actores y directores
+
+ALTER TABLE actores
+  ADD COLUMN nacionalidad VARCHAR(100) NULL AFTER fecha_nacimiento;
+
+ALTER TABLE directores
+  ADD COLUMN nacionalidad VARCHAR(100) NULL AFTER fecha_nacimiento;
+
+
 
 
 
