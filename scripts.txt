@@ -176,6 +176,17 @@ ALTER TABLE actores
 ALTER TABLE directores
   ADD COLUMN nacionalidad VARCHAR(100) NULL AFTER fecha_nacimiento;
 
+-- Agregar director_id a series
+
+ALTER TABLE series
+  ADD COLUMN director_id INT UNSIGNED NULL AFTER temporadas;
+
+ALTER TABLE series
+  ADD CONSTRAINT fk_series_director
+  FOREIGN KEY (director_id) REFERENCES directores(id)
+  ON DELETE SET NULL
+  ON UPDATE CASCADE;
+
 
 
 

@@ -15,6 +15,7 @@ if (!$serie) die("❌ No existe la serie con ese id.");
 $plataformas = $controller->listPlataformas();
 $actores = $controller->listActores();
 $idiomas = $controller->listIdiomas();
+$directores = $controller->listDirectores();
 
 function isChecked(array $selectedIds, int $id): string {
     return in_array($id, $selectedIds, true) ? "checked" : "";
@@ -25,6 +26,7 @@ $titulo = $serie["titulo"];
 $sinopsis = $serie["sinopsis"] ?? "";
 $anio = $serie["anio"] ?? "";
 $temporadas = $serie["temporadas"] ?? "";
+$directorId = $serie["director_id"] ?? "";
 
 // Seleccionados desde BD (precarga checks)
 $selectedPlataformas = $controller->getPlataformaIdsBySerie($id);
@@ -40,6 +42,7 @@ if (isset($_POST["serieId"]) && isset($_POST["titulo"])) {
     $sinopsis = isset($_POST["sinopsis"]) ? trim($_POST["sinopsis"]) : "";
     $anio = isset($_POST["anio"]) ? trim($_POST["anio"]) : "";
     $temporadas = isset($_POST["temporadas"]) ? trim($_POST["temporadas"]) : "";
+    $directorId = isset($_POST["director_id"]) ? trim($_POST["director_id"]) : "";
 
     // arrays desde checkboxes
     $selectedPlataformas = isset($_POST["plataformas"]) ? array_map("intval", (array)$_POST["plataformas"]) : [];
@@ -58,6 +61,7 @@ if (isset($_POST["serieId"]) && isset($_POST["titulo"])) {
                 $sinopsis,
                 $anio,
                 $temporadas,
+                $directorId,
                 $selectedPlataformas,
                 $selectedActores,
                 $selectedAudio,
@@ -69,6 +73,7 @@ if (isset($_POST["serieId"]) && isset($_POST["titulo"])) {
 
             // refrescar serie desde BD (por si cambió algo)
             $serie = $controller->getSerie($id);
+            $directorId = $serie["director_id"] ?? "";
         } catch (Throwable $e) {
             $mensaje = "Error al modificar: " . $e->getMessage();
             $tipo = "danger";
@@ -115,6 +120,19 @@ require_once __DIR__ . "/../partials/header.php";
           <label class="form-label">Temporadas</label>
           <input class="form-control" type="number" name="temporadas" value="<?= htmlspecialchars($temporadas) ?>">
         </div>
+        <div class="mb-3">
+  <label class="form-label">Director</label>
+  <select class="form-select" name="director_id">
+    <option value="">-- Sin director --</option>
+
+    <?php foreach ($directores as $d): ?>
+      <?php $did = (int)$d->getId(); ?>
+      <option value="<?= $did ?>" <?= ((string)$did === (string)$directorId) ? "selected" : "" ?>>
+        <?= htmlspecialchars(trim($d->getNombre() . " " . $d->getApellidos())) ?>
+      </option>
+    <?php endforeach; ?>
+  </select>
+</div>
       </div>
 
       <hr class="my-4">

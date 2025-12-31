@@ -58,7 +58,7 @@ class Serie
     public function getById($id)
     {
         $pdo = $this->connect();
-        $stmt = $pdo->prepare("SELECT id, titulo, sinopsis, anio, temporadas FROM series WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT id, titulo, sinopsis, anio, temporadas, director_id FROM series WHERE id = ?");
         $stmt->execute([(int)$id]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -135,6 +135,7 @@ class Serie
         $sinopsis = trim($data["sinopsis"] ?? "");
         $anio = ($data["anio"] ?? "") !== "" ? (int)$data["anio"] : null;
         $temporadas = ($data["temporadas"] ?? "") !== "" ? (int)$data["temporadas"] : null;
+        $directorId = ($data["director_id"] ?? "") !== "" ? (int)$data["director_id"] : null;
 
         $plataformas = $this->sanitizeIdArray($data["plataformas"] ?? []);
         $actores     = $this->sanitizeIdArray($data["actores"] ?? []);
@@ -146,8 +147,8 @@ class Serie
 
         try {
             // Insert serie
-            $stmt = $pdo->prepare("INSERT INTO series (titulo, sinopsis, anio, temporadas) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$titulo, $sinopsis, $anio, $temporadas]);
+            $stmt = $pdo->prepare("INSERT INTO series (titulo, sinopsis, anio, temporadas, director_id) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$titulo, $sinopsis, $anio, $temporadas, $directorId]);
 
             $serieId = (int)$pdo->lastInsertId();
 
@@ -176,6 +177,7 @@ class Serie
         $sinopsis = trim($data["sinopsis"] ?? "");
         $anio = ($data["anio"] ?? "") !== "" ? (int)$data["anio"] : null;
         $temporadas = ($data["temporadas"] ?? "") !== "" ? (int)$data["temporadas"] : null;
+        $directorId = ($data["director_id"] ?? "") !== "" ? (int)$data["director_id"] : null;
 
         $plataformas = $this->sanitizeIdArray($data["plataformas"] ?? []);
         $actores     = $this->sanitizeIdArray($data["actores"] ?? []);
@@ -187,8 +189,8 @@ class Serie
 
         try {
             // Update serie
-            $stmt = $pdo->prepare("UPDATE series SET titulo = ?, sinopsis = ?, anio = ?, temporadas = ? WHERE id = ?");
-            $ok = $stmt->execute([$titulo, $sinopsis, $anio, $temporadas, (int)$serieId]);
+            $stmt = $pdo->prepare("UPDATE series SET titulo = ?, sinopsis = ?, anio = ?, temporadas = ?, director_id = ? WHERE id = ?");
+            $ok = $stmt->execute([$titulo, $sinopsis, $anio, $temporadas, $directorId, (int)$serieId]);
 
             // Limpiar relaciones
             $this->clearBridge($pdo, "DELETE FROM serie_plataforma WHERE serie_id = ?", $serieId);

@@ -3,6 +3,7 @@ require_once __DIR__ . "/../models/Serie.php";
 require_once __DIR__ . "/../models/Plataforma.php";
 require_once __DIR__ . "/../models/Actor.php";
 require_once __DIR__ . "/../models/Idioma.php";
+require_once __DIR__ . "/../models/Director.php";
 
 class SerieController
 {
@@ -18,7 +19,7 @@ class SerieController
         return $model->getById($id);
     }
 
-    public function createSerie($titulo, $sinopsis, $anio, $temporadas, $plataformas, $actores, $idiomasAudio, $idiomasSub)
+    public function createSerie($titulo, $sinopsis, $anio, $temporadas, $directorId, $plataformas, $actores, $idiomasAudio, $idiomasSub)
     {
         $model = new Serie();
 
@@ -27,6 +28,7 @@ class SerieController
             "sinopsis" => $sinopsis,
             "anio" => $anio,
             "temporadas" => $temporadas,
+            "director_id" => $directorId,
             "plataformas" => $plataformas,
             "actores" => $actores,
             "idiomas_audio" => $idiomasAudio,
@@ -34,7 +36,7 @@ class SerieController
         ]);
     }
 
-    public function updateSerie($id, $titulo, $sinopsis, $anio, $temporadas, $plataformas, $actores, $idiomasAudio, $idiomasSub)
+    public function updateSerie($id, $titulo, $sinopsis, $anio, $temporadas, $directorId, $plataformas, $actores, $idiomasAudio, $idiomasSub)
     {
         $model = new Serie();
 
@@ -43,6 +45,7 @@ class SerieController
             "sinopsis" => $sinopsis,
             "anio" => $anio,
             "temporadas" => $temporadas,
+            "director_id"=> $directorId,
             "plataformas" => $plataformas,
             "actores" => $actores,
             "idiomas_audio" => $idiomasAudio,
@@ -67,6 +70,12 @@ class SerieController
     {
         $m = new Actor();
         return $m->getAll(); // devuelve objetos Actor
+    }
+
+    public function listDirectores()
+    {
+        $m = new Director();
+        return $m->getAll();
     }
 
     public function listIdiomas()

@@ -14,6 +14,7 @@ $temporadas = "";
 $plataformas = $controller->listPlataformas();
 $actores = $controller->listActores();
 $idiomas = $controller->listIdiomas();
+$directores = $controller->listDirectores();
 
 // seleccionados (para mantener checks si falla validación)
 $selectedPlataformas = [];
@@ -30,6 +31,7 @@ if (isset($_POST["titulo"])) {
     $sinopsis = isset($_POST["sinopsis"]) ? trim($_POST["sinopsis"]) : "";
     $anio = isset($_POST["anio"]) ? trim($_POST["anio"]) : "";
     $temporadas = isset($_POST["temporadas"]) ? trim($_POST["temporadas"]) : "";
+    $directorId = isset($_POST["director_id"]) ? trim($_POST["director_id"]) : "";
 
     // arrays desde checkboxes
     $selectedPlataformas = isset($_POST["plataformas"]) ? array_map("intval", (array)$_POST["plataformas"]) : [];
@@ -47,6 +49,7 @@ if (isset($_POST["titulo"])) {
                 $sinopsis,
                 $anio,
                 $temporadas,
+                $directorId,
                 $selectedPlataformas,
                 $selectedActores,
                 $selectedAudio,
@@ -57,7 +60,7 @@ if (isset($_POST["titulo"])) {
             $tipo = "success";
 
             // limpiar form
-            $titulo = ""; $sinopsis = ""; $anio = ""; $temporadas = "";
+            $titulo = ""; $sinopsis = ""; $anio = ""; $temporadas = ""; $directorId = "";
             $selectedPlataformas = []; $selectedActores = []; $selectedAudio = []; $selectedSub = [];
         } catch (Throwable $e) {
             $mensaje = "No se pudo crear la serie: " . $e->getMessage();
@@ -102,6 +105,17 @@ require_once __DIR__ . "/../partials/header.php";
           <label class="form-label">Temporadas</label>
           <input class="form-control" type="number" name="temporadas" value="<?= htmlspecialchars($temporadas) ?>">
         </div>
+        <div class="mb-3">
+  <label class="form-label">Director</label>
+  <select class="form-select" name="director_id">
+    <option value="">-- Sin director --</option>
+    <?php foreach ($directores as $d): ?>
+      <option value="<?= (int)$d->getId() ?>">
+        <?= htmlspecialchars(trim($d->getNombre() . " " . $d->getApellidos())) ?>
+      </option>
+    <?php endforeach; ?>
+  </select>
+</div>
       </div>
 
       <hr class="my-4">
