@@ -101,7 +101,7 @@ CREATE TABLE serie_plataforma (
 
 CREATE TABLE serie_actor (
   serie_id INT NOT NULL,
-  actor_id INT UNSGINED NOT NULL,
+  actor_id INT UNSIGNED NOT NULL,
   PRIMARY KEY (serie_id, actor_id),
   FOREIGN KEY (serie_id) REFERENCES series(id) ON DELETE CASCADE,
   FOREIGN KEY (actor_id) REFERENCES actores(id) ON DELETE CASCADE
