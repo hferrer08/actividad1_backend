@@ -45,6 +45,19 @@ class Actor
         ]);
     }
 
+    // Validación BBDD: existencia
+
+    public function exists($id): bool
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->prepare("SELECT 1 FROM actores WHERE id = ? LIMIT 1");
+        $stmt->execute([$id]);
+        return (bool)$stmt->fetchColumn();
+    }
+
+
+    // CRUD
+
     public function getAll()
     {
         $pdo = $this->connect();
@@ -73,27 +86,68 @@ class Actor
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) return null;
 
-        return new Actor($row["id"], $row["nombre"], $row["apellidos"], $row["fecha_nacimiento"],  $row["nacionalidad"]);
+        return new Actor(
+            $row["id"],
+            $row["nombre"],
+            $row["apellidos"],
+            $row["fecha_nacimiento"],
+            $row["nacionalidad"]
+        );
     }
 
     public function create($nombre, $apellidos, $fechaNacimiento, $nacionalidad)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("INSERT INTO actores (nombre, apellidos, fecha_nacimiento, nacionalidad) VALUES (?,  ?, ?, ?)");
-        return $stmt->execute([$nombre, $apellidos, $fechaNacimiento ?: null, $nacionalidad ?: null]);
+        // Si viene "" desde el controller, lo convertimos a NULL (solo para fecha)
+        if ($fechaNacimiento === "") $fechaNacimiento = null;
+        if ($nacionalidad === "") $nacionalidad = null;
+
+        try {
+            $pdo = $this->connect();
+            $stmt = $pdo->prepare("INSERT INTO actores (nombre, apellidos, fecha_nacimiento, nacionalidad) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$nombre, $apellidos, $fechaNacimiento, $nacionalidad]);
+            return true;
+        } catch (PDOException $e) {
+          
+            throw $e;
+        }
     }
 
     public function update($id, $nombre, $apellidos, $fechaNacimiento, $nacionalidad)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("UPDATE actores SET nombre = ?, apellidos = ?, fecha_nacimiento = ?, nacionalidad = ? WHERE id = ?");
-        return $stmt->execute([$nombre, $apellidos, $fechaNacimiento ?: null, $nacionalidad ?: null, $id]);
+        if (!$this->exists($id)) {
+            throw new Exception("❌ No existe el actor con id {$id}.");
+        }
+
+        if ($fechaNacimiento === "") $fechaNacimiento = null;
+        if ($nacionalidad === "") $nacionalidad = null;
+
+        try {
+            $pdo = $this->connect();
+            $stmt = $pdo->prepare("UPDATE actores SET nombre = ?, apellidos = ?, fecha_nacimiento = ?, nacionalidad = ? WHERE id = ?");
+            $stmt->execute([$nombre, $apellidos, $fechaNacimiento, $nacionalidad, $id]);
+            return true;
+        } catch (PDOException $e) {
+            throw $e;
+        }
     }
 
     public function delete($id)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("DELETE FROM actores WHERE id = ?");
-        return $stmt->execute([$id]);
+        if (!$this->exists($id)) {
+            throw new Exception("❌ No existe el actor con id {$id}.");
+        }
+
+        try {
+            $pdo = $this->connect();
+            $stmt = $pdo->prepare("DELETE FROM actores WHERE id = ?");
+            $stmt->execute([$id]);
+            return true;
+        } catch (PDOException $e) {
+            // 1451 = FK restrict (actor asociado en serie_actor, por ejemplo)
+            if ((int)($e->errorInfo[1] ?? 0) === 1451) {
+                throw new Exception("❌ No se puede borrar este actor porque está asociado a una o más series.");
+            }
+            throw $e;
+        }
     }
 }
