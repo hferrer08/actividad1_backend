@@ -17,7 +17,6 @@ class Plataforma
     public function setId($id) { $this->id = $id; }
     public function setNombre($nombre) { $this->nombre = $nombre; }
 
-    // Conexión
     private function connect()
     {
         $host = "localhost";
@@ -32,7 +31,31 @@ class Plataforma
         ]);
     }
 
-    // getAll = devuelve array de objetos Plataforma (como el ejemplo)
+ 
+    // Validación BBDD: existencia
+
+    public function exists($id): bool
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->prepare("SELECT 1 FROM plataformas WHERE id = ? LIMIT 1");
+        $stmt->execute([$id]);
+        return (bool)$stmt->fetchColumn();
+    }
+
+    // Validación BBDD: duplicados por nombre
+    public function getByNombre($nombre)
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->prepare("SELECT id, nombre FROM plataformas WHERE nombre = ? LIMIT 1");
+        $stmt->execute([$nombre]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) return null;
+
+        return new Plataforma($row["id"], $row["nombre"]);
+    }
+
+    // CRUD
+
     public function getAll()
     {
         $pdo = $this->connect();
@@ -46,7 +69,6 @@ class Plataforma
         return $plataformas;
     }
 
-    // getById = devuelve objeto Plataforma o null (para edit)
     public function getById($id)
     {
         $pdo = $this->connect();
@@ -59,27 +81,69 @@ class Plataforma
         return new Plataforma($row["id"], $row["nombre"]);
     }
 
-    // create = true/false
     public function create($nombre)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("INSERT INTO plataformas (nombre) VALUES (?)");
-        return $stmt->execute([$nombre]);
+       
+        if ($this->getByNombre($nombre)) {
+            throw new Exception("❌ Ya existe una plataforma con el nombre '{$nombre}'.");
+        }
+
+        try {
+            $pdo = $this->connect();
+            $stmt = $pdo->prepare("INSERT INTO plataformas (nombre) VALUES (?)");
+            $stmt->execute([$nombre]);
+            return true;
+        } catch (PDOException $e) {
+            // 1062 = Duplicate entry (UNIQUE)
+            if ((int)($e->errorInfo[1] ?? 0) === 1062) {
+                throw new Exception("❌ Ya existe una plataforma con ese nombre.");
+            }
+            throw $e;
+        }
     }
 
-    // update = true/false
     public function update($id, $nombre)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("UPDATE plataformas SET nombre = ? WHERE id = ?");
-        return $stmt->execute([$nombre, $id]);
+        if (!$this->exists($id)) {
+            throw new Exception("❌ No existe la plataforma con id {$id}.");
+        }
+
+        // Duplicado (excluyendo el mismo id)
+        $byNombre = $this->getByNombre($nombre);
+        if ($byNombre && (int)$byNombre->getId() !== (int)$id) {
+            throw new Exception("❌ Ya existe otra plataforma con el nombre '{$nombre}'.");
+        }
+
+        try {
+            $pdo = $this->connect();
+            $stmt = $pdo->prepare("UPDATE plataformas SET nombre = ? WHERE id = ?");
+            $stmt->execute([$nombre, $id]);
+            return true;
+        } catch (PDOException $e) {
+            if ((int)($e->errorInfo[1] ?? 0) === 1062) {
+                throw new Exception("❌ Ya existe una plataforma con ese nombre.");
+            }
+            throw $e;
+        }
     }
 
-    // delete = true/false
     public function delete($id)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("DELETE FROM plataformas WHERE id = ?");
-        return $stmt->execute([$id]);
+        if (!$this->exists($id)) {
+            throw new Exception("❌ No existe la plataforma con id {$id}.");
+        }
+
+        try {
+            $pdo = $this->connect();
+            $stmt = $pdo->prepare("DELETE FROM plataformas WHERE id = ?");
+            $stmt->execute([$id]);
+            return true;
+        } catch (PDOException $e) {
+            // 1451 = FK restrict (plataforma asociada en serie_plataforma)
+            if ((int)($e->errorInfo[1] ?? 0) === 1451) {
+                throw new Exception("❌ No se puede borrar esta plataforma porque está asociada a una o más series.");
+            }
+            throw $e;
+        }
     }
 }
