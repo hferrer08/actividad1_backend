@@ -17,14 +17,12 @@ class Serie
         $this->temporadas = $temporadas;
     }
 
-    // Getters
     public function getId() { return $this->id; }
     public function getTitulo() { return $this->titulo; }
     public function getSinopsis() { return $this->sinopsis; }
     public function getAnio() { return $this->anio; }
     public function getTemporadas() { return $this->temporadas; }
 
-    // Setters
     public function setId($id) { $this->id = $id; }
     public function setTitulo($titulo) { $this->titulo = $titulo; }
     public function setSinopsis($sinopsis) { $this->sinopsis = $sinopsis; }
@@ -45,7 +43,41 @@ class Serie
         ]);
     }
 
-    //CRUD Básico
+    // Validaciones BBDD
+
+    public function existsSerie(int $id): bool
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->prepare("SELECT 1 FROM series WHERE id = ? LIMIT 1");
+        $stmt->execute([$id]);
+        return (bool)$stmt->fetchColumn();
+    }
+
+    private function existsInTable(PDO $pdo, string $table, int $id): bool
+    {
+        $stmt = $pdo->prepare("SELECT 1 FROM {$table} WHERE id = ? LIMIT 1");
+        $stmt->execute([$id]);
+        return (bool)$stmt->fetchColumn();
+    }
+
+    private function assertAllExist(PDO $pdo, string $table, array $ids, string $label): void
+    {
+        foreach ($ids as $id) {
+            if (!$this->existsInTable($pdo, $table, (int)$id)) {
+                throw new Exception("❌ {$label}: no existe el id {$id}.");
+            }
+        }
+    }
+
+    private function assertDirectorExists(PDO $pdo, ?int $directorId): void
+    {
+        if ($directorId === null) return;
+        if (!$this->existsInTable($pdo, "directores", $directorId)) {
+            throw new Exception("❌ Director: no existe el id {$directorId}.");
+        }
+    }
+
+    // CRUD 
 
     public function getAll()
     {
@@ -81,16 +113,28 @@ class Serie
 
     public function delete($id)
     {
-        $pdo = $this->connect();
-        // Con ON DELETE CASCADE se borran las relaciones.
-        $stmt = $pdo->prepare("DELETE FROM series WHERE id = ?");
-        return $stmt->execute([(int)$id]);
+        $id = (int)$id;
+
+        if (!$this->existsSerie($id)) {
+            throw new Exception("❌ No existe la serie con id {$id}.");
+        }
+
+        try {
+            $pdo = $this->connect();
+            $stmt = $pdo->prepare("DELETE FROM series WHERE id = ?");
+            $stmt->execute([$id]);
+            return true;
+        } catch (PDOException $e) {
+            if ((int)($e->errorInfo[1] ?? 0) === 1451) {
+                throw new Exception("❌ No se puede borrar esta serie porque está asociada a registros relacionados.");
+            }
+            throw $e;
+        }
     }
 
-
-       // RELACIONES: IDs seleccionados
-
-
+    // -------------------------
+    // RELACIONES: IDs seleccionados
+    // -------------------------
     public function getPlataformaIdsBySerie(int $serieId): array
     {
         return $this->fetchIds("SELECT plataforma_id AS id FROM serie_plataforma WHERE serie_id = ?", $serieId);
@@ -122,17 +166,18 @@ class Serie
     }
 
 
-      // CREATE/UPDATE completo (SERIE + relaciones intermedias)
-
+    // CREATE/UPDATE completo (SERIE + relaciones intermedias)
 
     public function createFull(array $data): int
     {
         $titulo = trim($data["titulo"] ?? "");
         if ($titulo === "") {
-            throw new Exception("El título es obligatorio.");
+            throw new Exception("❌ El título es obligatorio.");
         }
 
         $sinopsis = trim($data["sinopsis"] ?? "");
+        $sinopsis = ($sinopsis === "") ? null : $sinopsis;
+
         $anio = ($data["anio"] ?? "") !== "" ? (int)$data["anio"] : null;
         $temporadas = ($data["temporadas"] ?? "") !== "" ? (int)$data["temporadas"] : null;
         $directorId = ($data["director_id"] ?? "") !== "" ? (int)$data["director_id"] : null;
@@ -146,6 +191,13 @@ class Serie
         $pdo->beginTransaction();
 
         try {
+            // Validaciones BBDD: existencia de FKs (antes de insertar)
+            $this->assertDirectorExists($pdo, $directorId);
+            $this->assertAllExist($pdo, "plataformas", $plataformas, "Plataforma");
+            $this->assertAllExist($pdo, "actores", $actores, "Actor");
+            $this->assertAllExist($pdo, "idiomas", $audios, "Idioma audio");
+            $this->assertAllExist($pdo, "idiomas", $subs, "Idioma subtítulos");
+
             // Insert serie
             $stmt = $pdo->prepare("INSERT INTO series (titulo, sinopsis, anio, temporadas, director_id) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([$titulo, $sinopsis, $anio, $temporadas, $directorId]);
@@ -163,18 +215,30 @@ class Serie
 
         } catch (Throwable $e) {
             $pdo->rollBack();
+
+            // Mensaje por FKS
+            if ($e instanceof PDOException && (int)($e->errorInfo[1] ?? 0) === 1452) {
+                throw new Exception("❌ Hay referencias inválidas (director/plataformas/actores/idiomas).");
+            }
+
             throw $e;
         }
     }
 
     public function updateFull(int $serieId, array $data): bool
     {
+        if (!$this->existsSerie((int)$serieId)) {
+            throw new Exception("❌ No existe la serie con id {$serieId}.");
+        }
+
         $titulo = trim($data["titulo"] ?? "");
         if ($titulo === "") {
-            throw new Exception("El título es obligatorio.");
+            throw new Exception("❌ El título es obligatorio.");
         }
 
         $sinopsis = trim($data["sinopsis"] ?? "");
+        $sinopsis = ($sinopsis === "") ? null : $sinopsis;
+
         $anio = ($data["anio"] ?? "") !== "" ? (int)$data["anio"] : null;
         $temporadas = ($data["temporadas"] ?? "") !== "" ? (int)$data["temporadas"] : null;
         $directorId = ($data["director_id"] ?? "") !== "" ? (int)$data["director_id"] : null;
@@ -188,6 +252,13 @@ class Serie
         $pdo->beginTransaction();
 
         try {
+            // Validaciones BBDD: existencia de FKs
+            $this->assertDirectorExists($pdo, $directorId);
+            $this->assertAllExist($pdo, "plataformas", $plataformas, "Plataforma");
+            $this->assertAllExist($pdo, "actores", $actores, "Actor");
+            $this->assertAllExist($pdo, "idiomas", $audios, "Idioma audio");
+            $this->assertAllExist($pdo, "idiomas", $subs, "Idioma subtítulos");
+
             // Update serie
             $stmt = $pdo->prepare("UPDATE series SET titulo = ?, sinopsis = ?, anio = ?, temporadas = ?, director_id = ? WHERE id = ?");
             $ok = $stmt->execute([$titulo, $sinopsis, $anio, $temporadas, $directorId, (int)$serieId]);
@@ -209,13 +280,17 @@ class Serie
 
         } catch (Throwable $e) {
             $pdo->rollBack();
+
+            if ($e instanceof PDOException && (int)($e->errorInfo[1] ?? 0) === 1452) {
+                throw new Exception("❌ Hay referencias inválidas (director/plataformas/actores/idiomas).");
+            }
+
             throw $e;
         }
     }
 
 
-      // HELPERS RELACIONES
-
+    // HELPERS RELACIONES
 
     private function sanitizeIdArray($arr): array
     {
