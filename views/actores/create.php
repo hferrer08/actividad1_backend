@@ -1,39 +1,40 @@
 <?php
 require_once __DIR__ . "/../../controllers/ActorController.php";
+
 $controller = new ActorController();
 
 $mensaje = null;
 $tipo = "success";
 
+// Valores para repintar si falla
 $nombre = "";
 $apellidos = "";
-$fecha = "";
+$fechaNacimiento = "";
 $nacionalidad = "";
 
-if (isset($_POST["nombre"]) && isset($_POST["apellidos"])) {
-    $nombre = trim($_POST["nombre"]);
-    $apellidos = trim($_POST["apellidos"]);
-    $fecha = isset($_POST["fecha_nacimiento"]) ? trim($_POST["fecha_nacimiento"]) : "";
-    
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Tomar POST para repintar
+    $nombre = $_POST["nombre"] ?? "";
+    $apellidos = $_POST["apellidos"] ?? "";
+    $fechaNacimiento = $_POST["fecha_nacimiento"] ?? "";
+    $nacionalidad = $_POST["nacionalidad"] ?? "";
 
-    if ($nombre === "" || $apellidos === "") {
-        $mensaje = "Nombre y apellidos son obligatorios.";
+    try {
+        $controller->createActor($nombre, $apellidos, $fechaNacimiento, $nacionalidad);
+        header("Location: list.php");
+        exit;
+    } catch (Throwable $e) {
+        $mensaje = $e->getMessage();
         $tipo = "danger";
-    } else {
-        $ok = $controller->createActor($nombre, $apellidos, $fecha,  $nacionalidad);
-        $mensaje = $ok ? "Actor creado correctamente." : "No se pudo crear el actor.";
-        $tipo = $ok ? "success" : "danger";
-
-        if ($ok) { $nombre = ""; $apellidos = ""; $fecha = ""; }
     }
 }
 
-$title = "Actores - Crear";
+$title = "Actores - Nuevo";
 require_once __DIR__ . "/../partials/header.php";
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h1 class="h3 mb-0">Crear actor</h1>
+  <h1 class="h3 mb-0">Nuevo actor</h1>
   <a class="btn btn-outline-secondary" href="list.php">Volver</a>
 </div>
 
@@ -43,30 +44,37 @@ require_once __DIR__ . "/../partials/header.php";
 
 <div class="card shadow-sm">
   <div class="card-body">
-    <form method="post" action="">
-      <div class="mb-3">
-        <label class="form-label">Nombre</label>
-        <input class="form-control" name="nombre" value="<?= htmlspecialchars($nombre) ?>" required>
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Nombre <span class="text-danger">*</span></label>
+          <input type="text" name="nombre" class="form-control"
+                 value="<?= htmlspecialchars($nombre) ?>" required maxlength="100">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Apellidos <span class="text-danger">*</span></label>
+          <input type="text" name="apellidos" class="form-control"
+                 value="<?= htmlspecialchars($apellidos) ?>" required maxlength="120">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Fecha nacimiento</label>
+          <input type="date" name="fecha_nacimiento" class="form-control"
+                 value="<?= htmlspecialchars($fechaNacimiento) ?>">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Nacionalidad</label>
+          <input type="text" name="nacionalidad" class="form-control"
+                 value="<?= htmlspecialchars($nacionalidad) ?>" maxlength="100">
+        </div>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Apellidos</label>
-        <input class="form-control" name="apellidos" value="<?= htmlspecialchars($apellidos) ?>" required>
+      <div class="mt-4 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Guardar</button>
+        <a class="btn btn-outline-secondary" href="list.php">Cancelar</a>
       </div>
-
-      <div class="mb-3">
-        <label class="form-label">Fecha de nacimiento</label>
-        <input class="form-control" type="date" name="fecha_nacimiento" value="<?= htmlspecialchars($fecha) ?>">
-        <div class="form-text">Opcional.</div>
-      </div>
-
-      <div class="mb-3">
-  <label class="form-label">Nacionalidad</label>
-  <input class="form-control" name="nacionalidad" value="<?= htmlspecialchars($nacionalidad) ?>">
-</div>
-
-      <button class="btn btn-primary" type="submit">Guardar</button>
-      <a class="btn btn-outline-secondary" href="list.php">Cancelar</a>
     </form>
   </div>
 </div>
