@@ -6,13 +6,15 @@ $controller = new PlataformaController();
 $mensaje = null;
 $tipo = "success";
 
-if (!isset($_GET["id"])) {
+$id = isset($_GET["id"]) ? (int)$_GET["id"] : 0;
+$plataforma = null;
+
+if ($id <= 0) {
     $mensaje = "❌ Falta el parámetro id.";
     $tipo = "danger";
-    $plataforma = null;
 } else {
     try {
-        $plataforma = $controller->getPlataforma($_GET["id"]);
+        $plataforma = $controller->getPlataforma($id);
         if (!$plataforma) {
             $mensaje = "❌ No existe la plataforma con ese id.";
             $tipo = "danger";
@@ -24,13 +26,15 @@ if (!isset($_GET["id"])) {
     }
 }
 
-$nombre = $plataforma["nombre"] ?? "";
+// Valor inicial (si existe la plataforma)
+$nombre = $plataforma ? $plataforma->getNombre() : "";
 
+// POST: guardar cambios
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $nombre = $_POST["nombre"] ?? "";
 
     try {
-        $controller->updatePlataforma($_GET["id"], $nombre);
+        $controller->updatePlataforma($id, $nombre);
         header("Location: list.php");
         exit;
     } catch (Throwable $e) {
@@ -49,17 +53,25 @@ require_once __DIR__ . "/../partials/header.php";
 </div>
 
 <?php if ($mensaje): ?>
-  <div class="alert alert-<?= $tipo ?>"><?= htmlspecialchars($mensaje) ?></div>
+  <div class="alert alert-<?= htmlspecialchars($tipo) ?>">
+    <?= htmlspecialchars($mensaje) ?>
+  </div>
 <?php endif; ?>
 
 <?php if ($plataforma): ?>
   <div class="card shadow-sm">
     <div class="card-body">
-      <form method="POST">
+      <form method="POST" novalidate>
         <div class="mb-3">
           <label class="form-label">Nombre <span class="text-danger">*</span></label>
-          <input type="text" name="nombre" class="form-control"
-                 value="<?= htmlspecialchars($nombre) ?>" required maxlength="100">
+          <input
+            type="text"
+            name="nombre"
+            class="form-control"
+            value="<?= htmlspecialchars($nombre) ?>"
+            required
+            maxlength="100"
+          >
         </div>
 
         <div class="d-flex gap-2">

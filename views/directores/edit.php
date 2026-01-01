@@ -6,13 +6,15 @@ $controller = new DirectorController();
 $mensaje = null;
 $tipo = "success";
 
-if (!isset($_GET["id"])) {
+$id = isset($_GET["id"]) ? (int)$_GET["id"] : 0;
+$director = null;
+
+if ($id <= 0) {
     $mensaje = "❌ Falta el parámetro id.";
     $tipo = "danger";
-    $director = null;
 } else {
     try {
-        $director = $controller->getDirector($_GET["id"]);
+        $director = $controller->getDirector($id);
         if (!$director) {
             $mensaje = "❌ No existe el director con ese id.";
             $tipo = "danger";
@@ -24,11 +26,13 @@ if (!isset($_GET["id"])) {
     }
 }
 
-$nombre = $director["nombre"] ?? "";
-$apellidos = $director["apellidos"] ?? "";
-$fechaNacimiento = $director["fecha_nacimiento"] ?? "";
-$nacionalidad = $director["nacionalidad"] ?? "";
+// Valores iniciales (si existe el director)
+$nombre = $director ? $director->getNombre() : "";
+$apellidos = $director ? $director->getApellidos() : "";
+$fechaNacimiento = $director ? $director->getFechaNacimiento() : "";
+$nacionalidad = $director ? $director->getNacionalidad() : "";
 
+// POST: guardar cambios
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $nombre = $_POST["nombre"] ?? "";
     $apellidos = $_POST["apellidos"] ?? "";
@@ -36,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $nacionalidad = $_POST["nacionalidad"] ?? "";
 
     try {
-        $controller->updateDirector($_GET["id"], $nombre, $apellidos, $fechaNacimiento, $nacionalidad);
+        $controller->updateDirector($id, $nombre, $apellidos, $fechaNacimiento, $nacionalidad);
         header("Location: list.php");
         exit;
     } catch (Throwable $e) {
@@ -55,36 +59,59 @@ require_once __DIR__ . "/../partials/header.php";
 </div>
 
 <?php if ($mensaje): ?>
-  <div class="alert alert-<?= $tipo ?>"><?= htmlspecialchars($mensaje) ?></div>
+  <div class="alert alert-<?= htmlspecialchars($tipo) ?>">
+    <?= htmlspecialchars($mensaje) ?>
+  </div>
 <?php endif; ?>
 
 <?php if ($director): ?>
   <div class="card shadow-sm">
     <div class="card-body">
-      <form method="POST">
+      <form method="POST" novalidate>
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label">Nombre <span class="text-danger">*</span></label>
-            <input type="text" name="nombre" class="form-control"
-                   value="<?= htmlspecialchars($nombre) ?>" required maxlength="100">
+            <input
+              type="text"
+              name="nombre"
+              class="form-control"
+              value="<?= htmlspecialchars($nombre) ?>"
+              required
+              maxlength="100"
+            >
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Apellidos <span class="text-danger">*</span></label>
-            <input type="text" name="apellidos" class="form-control"
-                   value="<?= htmlspecialchars($apellidos) ?>" required maxlength="120">
+            <input
+              type="text"
+              name="apellidos"
+              class="form-control"
+              value="<?= htmlspecialchars($apellidos) ?>"
+              required
+              maxlength="120"
+            >
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Fecha nacimiento</label>
-            <input type="date" name="fecha_nacimiento" class="form-control"
-                   value="<?= htmlspecialchars($fechaNacimiento) ?>">
+            <input
+              type="date"
+              name="fecha_nacimiento"
+              class="form-control"
+              value="<?= htmlspecialchars($fechaNacimiento) ?>"
+            >
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Nacionalidad</label>
-            <input type="text" name="nacionalidad" class="form-control"
-                   value="<?= htmlspecialchars($nacionalidad) ?>" maxlength="100">
+            <input
+              type="text"
+              name="nacionalidad"
+              class="form-control"
+              value="<?= htmlspecialchars($nacionalidad) ?>"
+              maxlength="100"
+            >
           </div>
         </div>
 
