@@ -4,6 +4,7 @@ require_once __DIR__ . "/../models/Plataforma.php";
 require_once __DIR__ . "/../models/Actor.php";
 require_once __DIR__ . "/../models/Idioma.php";
 require_once __DIR__ . "/../models/Director.php";
+require_once __DIR__ . "/../helpers/Validator.php";
 
 class SerieController
 {
@@ -15,14 +16,27 @@ class SerieController
 
     public function getSerie($id)
     {
+        $id = Validator::id($id, "id");
         $model = new Serie();
         return $model->getById($id);
     }
 
     public function createSerie($titulo, $sinopsis, $anio, $temporadas, $directorId, $plataformas, $actores, $idiomasAudio, $idiomasSub)
     {
-        $model = new Serie();
+        $titulo = Validator::required($titulo, "titulo", 150, 2);
+        $sinopsis = Validator::optionalString($sinopsis, "sinopsis", 5000, true);
 
+        $anio = Validator::yearOptional($anio, "anio");
+        $temporadas = Validator::temporadasOptional($temporadas, "temporadas");
+
+        $directorId = Validator::optionalInt($directorId, "director", 1, null, true);
+
+        $plataformas = Validator::idArray($plataformas, "plataformas", true);
+        $actores = Validator::idArray($actores, "actores", true);
+        $idiomasAudio = Validator::idArray($idiomasAudio, "idiomas de audio", true);
+        $idiomasSub = Validator::idArray($idiomasSub, "idiomas de subtítulos", true);
+
+        $model = new Serie();
         return $model->createFull([
             "titulo" => $titulo,
             "sinopsis" => $sinopsis,
@@ -38,14 +52,28 @@ class SerieController
 
     public function updateSerie($id, $titulo, $sinopsis, $anio, $temporadas, $directorId, $plataformas, $actores, $idiomasAudio, $idiomasSub)
     {
-        $model = new Serie();
+        $id = Validator::id($id, "id");
 
-        return $model->updateFull((int)$id, [
+        $titulo = Validator::required($titulo, "titulo", 150, 2);
+        $sinopsis = Validator::optionalString($sinopsis, "sinopsis", 5000, true);
+
+        $anio = Validator::yearOptional($anio, "anio");
+        $temporadas = Validator::temporadasOptional($temporadas, "temporadas");
+
+        $directorId = Validator::optionalInt($directorId, "director", 1, null, true);
+
+        $plataformas = Validator::idArray($plataformas, "plataformas", true);
+        $actores = Validator::idArray($actores, "actores", true);
+        $idiomasAudio = Validator::idArray($idiomasAudio, "idiomas de audio", true);
+        $idiomasSub = Validator::idArray($idiomasSub, "idiomas de subtítulos", true);
+
+        $model = new Serie();
+        return $model->updateFull($id, [
             "titulo" => $titulo,
             "sinopsis" => $sinopsis,
             "anio" => $anio,
             "temporadas" => $temporadas,
-            "director_id"=> $directorId,
+            "director_id" => $directorId,
             "plataformas" => $plataformas,
             "actores" => $actores,
             "idiomas_audio" => $idiomasAudio,
@@ -55,21 +83,22 @@ class SerieController
 
     public function deleteSerie($id)
     {
+        $id = Validator::id($id, "id");
         $model = new Serie();
-        return $model->delete((int)$id);
+        return $model->delete($id);
     }
 
-    // Catálogos (para los multiselect)
+    // Catálogos
     public function listPlataformas()
     {
         $m = new Plataforma();
-        return $m->getAll(); // devuelve objetos Plataforma
+        return $m->getAll();
     }
 
     public function listActores()
     {
         $m = new Actor();
-        return $m->getAll(); // devuelve objetos Actor
+        return $m->getAll();
     }
 
     public function listDirectores()
@@ -81,31 +110,35 @@ class SerieController
     public function listIdiomas()
     {
         $m = new Idioma();
-        return $m->getAll(); // devuelve objetos Idioma
+        return $m->getAll();
     }
 
-    // IDs seleccionados por Serie (para precargar edit)
+    // IDs seleccionados por Serie
     public function getPlataformaIdsBySerie($serieId): array
     {
+        $serieId = Validator::id($serieId, "serieId");
         $m = new Serie();
-        return $m->getPlataformaIdsBySerie((int)$serieId);
+        return $m->getPlataformaIdsBySerie($serieId);
     }
 
     public function getActorIdsBySerie($serieId): array
     {
+        $serieId = Validator::id($serieId, "serieId");
         $m = new Serie();
-        return $m->getActorIdsBySerie((int)$serieId);
+        return $m->getActorIdsBySerie($serieId);
     }
 
     public function getAudioIdiomaIdsBySerie($serieId): array
     {
+        $serieId = Validator::id($serieId, "serieId");
         $m = new Serie();
-        return $m->getAudioIdiomaIdsBySerie((int)$serieId);
+        return $m->getAudioIdiomaIdsBySerie($serieId);
     }
 
     public function getSubIdiomaIdsBySerie($serieId): array
     {
+        $serieId = Validator::id($serieId, "serieId");
         $m = new Serie();
-        return $m->getSubIdiomaIdsBySerie((int)$serieId);
+        return $m->getSubIdiomaIdsBySerie($serieId);
     }
 }
