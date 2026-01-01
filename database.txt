@@ -1,0 +1,169 @@
+
+-- Actividad 1 (MVC PHP) - database.sql consolidado (MySQL)
+
+
+DROP DATABASE IF EXISTS actividad1_backend;
+CREATE DATABASE actividad1_backend
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE actividad1_backend;
+
+
+-- TABLAS BASE
+
+
+CREATE TABLE plataformas (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  descripcion VARCHAR(255) NULL,
+  url VARCHAR(255) NULL,
+  activo TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_plataformas_nombre (nombre)
+) ENGINE=InnoDB;
+
+CREATE TABLE directores (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  apellidos VARCHAR(120) NOT NULL,
+  fecha_nacimiento DATE NULL,
+  nacionalidad VARCHAR(100) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE actores (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  apellidos VARCHAR(120) NOT NULL,
+  fecha_nacimiento DATE NULL,
+  nacionalidad VARCHAR(100) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE idiomas (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(80) NOT NULL,
+  codigo VARCHAR(10) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_idiomas_codigo (codigo),
+  UNIQUE KEY uq_idiomas_nombre (nombre)
+) ENGINE=InnoDB;
+
+CREATE TABLE series (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  titulo VARCHAR(150) NOT NULL,
+  sinopsis TEXT NULL,
+  anio INT NULL,
+  temporadas INT NULL,
+  director_id INT UNSIGNED NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_series_director
+    FOREIGN KEY (director_id) REFERENCES directores(id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+-- TABLAS INTERMEDIAS (Relaciones)
+
+
+CREATE TABLE serie_plataforma (
+  serie_id INT UNSIGNED NOT NULL,
+  plataforma_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (serie_id, plataforma_id),
+  CONSTRAINT fk_sp_serie
+    FOREIGN KEY (serie_id) REFERENCES series(id) ON DELETE CASCADE,
+  CONSTRAINT fk_sp_plataforma
+    FOREIGN KEY (plataforma_id) REFERENCES plataformas(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE serie_actor (
+  serie_id INT UNSIGNED NOT NULL,
+  actor_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (serie_id, actor_id),
+  CONSTRAINT fk_sa_serie
+    FOREIGN KEY (serie_id) REFERENCES series(id) ON DELETE CASCADE,
+  CONSTRAINT fk_sa_actor
+    FOREIGN KEY (actor_id) REFERENCES actores(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE serie_idioma_audio (
+  serie_id INT UNSIGNED NOT NULL,
+  idioma_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (serie_id, idioma_id),
+  CONSTRAINT fk_sia_serie
+    FOREIGN KEY (serie_id) REFERENCES series(id) ON DELETE CASCADE,
+  CONSTRAINT fk_sia_idioma
+    FOREIGN KEY (idioma_id) REFERENCES idiomas(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE serie_idioma_sub (
+  serie_id INT UNSIGNED NOT NULL,
+  idioma_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (serie_id, idioma_id),
+  CONSTRAINT fk_sis_serie
+    FOREIGN KEY (serie_id) REFERENCES series(id) ON DELETE CASCADE,
+  CONSTRAINT fk_sis_idioma
+    FOREIGN KEY (idioma_id) REFERENCES idiomas(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+-- INSERTS DATOS DE PRUEBA
+
+
+INSERT INTO plataformas (nombre, descripcion, url) VALUES
+('Netflix', 'Streaming de series y películas', 'https://www.netflix.com'),
+('Disney+', 'Contenido Disney, Marvel, Pixar', 'https://www.disneyplus.com'),
+('Amazon Prime Video', 'Streaming de Amazon', 'https://www.primevideo.com');
+
+INSERT INTO directores (nombre, apellidos, fecha_nacimiento, nacionalidad) VALUES
+('Vince', 'Gilligan', '1967-02-10', 'EE.UU.'),
+('David', 'Benioff', '1970-09-25', 'EE.UU.'),
+('Shonda', 'Rhimes', '1970-01-13', 'EE.UU.');
+
+INSERT INTO actores (nombre, apellidos, fecha_nacimiento, nacionalidad) VALUES
+('Bryan', 'Cranston', '1956-03-07', 'EE.UU.'),
+('Emilia', 'Clarke', '1986-10-23', 'Reino Unido'),
+('Millie Bobby', 'Brown', '2004-02-19', 'Reino Unido');
+
+INSERT INTO idiomas (nombre, codigo) VALUES
+('Español', 'es'),
+('Inglés', 'en'),
+('Francés', 'fr');
+
+-- =========================================================
+-- INSERTS DE PRUEBA (1 serie + relaciones)
+-- =========================================================
+
+INSERT INTO series (titulo, sinopsis, anio, temporadas, director_id)
+VALUES (
+  'Breaking Bad',
+  'Un profesor de química se convierte en fabricante de metanfetaminas',
+  2008,
+  5,
+  1
+);
+
+INSERT INTO serie_plataforma (serie_id, plataforma_id) VALUES (1, 1);
+INSERT INTO serie_actor (serie_id, actor_id) VALUES (1, 1);
+INSERT INTO serie_idioma_audio (serie_id, idioma_id) VALUES (1, 1);
+INSERT INTO serie_idioma_sub (serie_id, idioma_id) VALUES (1, 2);
+
+-- =========================================================
+-- COMPROBACIÓN RÁPIDA
+-- =========================================================
+
+SELECT s.id, s.titulo, d.nombre AS director_nombre, d.apellidos AS director_apellidos
+FROM series s
+LEFT JOIN directores d ON d.id = s.director_id;
+
+SELECT s.titulo, p.nombre AS plataforma
+FROM series s
+JOIN serie_plataforma sp ON sp.serie_id = s.id
+JOIN plataformas p ON p.id = sp.plataforma_id;
