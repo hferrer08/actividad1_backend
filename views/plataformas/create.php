@@ -1,29 +1,32 @@
 <?php
 require_once __DIR__ . "/../../controllers/PlataformaController.php";
+
 $controller = new PlataformaController();
 
 $mensaje = null;
 $tipo = "success";
 
-if (isset($_POST["platformName"])) {
-  $name = trim($_POST["platformName"]);
+$nombre = "";
 
-  if ($name === "") {
-    $mensaje = "El nombre no puede estar vacío.";
-    $tipo = "danger";
-  } else {
-    $ok = $controller->createPlataforma($name);
-    $mensaje = $ok ? "Plataforma creada correctamente." : "No se pudo crear la plataforma.";
-    $tipo = $ok ? "success" : "danger";
-  }
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $nombre = $_POST["nombre"] ?? "";
+
+    try {
+        $controller->createPlataforma($nombre);
+        header("Location: list.php");
+        exit;
+    } catch (Throwable $e) {
+        $mensaje = $e->getMessage();
+        $tipo = "danger";
+    }
 }
 
-$title = "Plataformas - Crear";
+$title = "Plataformas - Nueva";
 require_once __DIR__ . "/../partials/header.php";
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h1 class="h3 mb-0">Crear plataforma</h1>
+  <h1 class="h3 mb-0">Nueva plataforma</h1>
   <a class="btn btn-outline-secondary" href="list.php">Volver</a>
 </div>
 
@@ -33,12 +36,17 @@ require_once __DIR__ . "/../partials/header.php";
 
 <div class="card shadow-sm">
   <div class="card-body">
-    <form method="post" action="">
+    <form method="POST">
       <div class="mb-3">
-        <label class="form-label">Nombre</label>
-        <input class="form-control" type="text" name="platformName" required>
+        <label class="form-label">Nombre <span class="text-danger">*</span></label>
+        <input type="text" name="nombre" class="form-control"
+               value="<?= htmlspecialchars($nombre) ?>" required maxlength="100">
       </div>
-      <button class="btn btn-primary" type="submit">Guardar</button>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Guardar</button>
+        <a class="btn btn-outline-secondary" href="list.php">Cancelar</a>
+      </div>
     </form>
   </div>
 </div>
