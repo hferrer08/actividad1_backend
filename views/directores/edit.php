@@ -1,37 +1,47 @@
 <?php
 require_once __DIR__ . "/../../controllers/DirectorController.php";
+
 $controller = new DirectorController();
 
 $mensaje = null;
 $tipo = "success";
 
-if (!isset($_GET["id"])) die("❌ Falta el parámetro id.");
-
-$id = (int)$_GET["id"];
-$director = $controller->getDirector($id);
-if (!$director) die("❌ No existe el director con ese id.");
-
-$nombre = $director->getNombre();
-$apellidos = $director->getApellidos();
-$fecha = $director->getFechaNacimiento() ?: "";
-$nacionalidad = $director->getNacionalidad() ?:"";
-
-if (isset($_POST["directorId"]) && isset($_POST["nombre"]) && isset($_POST["apellidos"])) {
-    $pid = (int)$_POST["directorId"];
-    $nombre = trim($_POST["nombre"]);
-    $apellidos = trim($_POST["apellidos"]);
-    $fecha = isset($_POST["fecha_nacimiento"]) ? trim($_POST["fecha_nacimiento"]) : "";
-    $nacionalidad = isset($_POST["nacionalidad"]) ? trim($_POST["nacionalidad"]) : "";
-
-    if ($nombre === "" || $apellidos === "") {
-        $mensaje = "Nombre y apellidos son obligatorios.";
+if (!isset($_GET["id"])) {
+    $mensaje = "❌ Falta el parámetro id.";
+    $tipo = "danger";
+    $director = null;
+} else {
+    try {
+        $director = $controller->getDirector($_GET["id"]);
+        if (!$director) {
+            $mensaje = "❌ No existe el director con ese id.";
+            $tipo = "danger";
+        }
+    } catch (Throwable $e) {
+        $mensaje = $e->getMessage();
         $tipo = "danger";
-    } else {
-        $ok = $controller->updateDirector($pid, $nombre, $apellidos, $fecha, $nacionalidad);
-        $mensaje = $ok ? "Director modificado correctamente." : "No se pudo modificar el director.";
-        $tipo = $ok ? "success" : "danger";
+        $director = null;
+    }
+}
 
-        $director = $controller->getDirector($id); // refresca
+$nombre = $director["nombre"] ?? "";
+$apellidos = $director["apellidos"] ?? "";
+$fechaNacimiento = $director["fecha_nacimiento"] ?? "";
+$nacionalidad = $director["nacionalidad"] ?? "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $nombre = $_POST["nombre"] ?? "";
+    $apellidos = $_POST["apellidos"] ?? "";
+    $fechaNacimiento = $_POST["fecha_nacimiento"] ?? "";
+    $nacionalidad = $_POST["nacionalidad"] ?? "";
+
+    try {
+        $controller->updateDirector($_GET["id"], $nombre, $apellidos, $fechaNacimiento, $nacionalidad);
+        header("Location: list.php");
+        exit;
+    } catch (Throwable $e) {
+        $mensaje = $e->getMessage();
+        $tipo = "danger";
     }
 }
 
@@ -40,10 +50,7 @@ require_once __DIR__ . "/../partials/header.php";
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <div>
-    <h1 class="h3 mb-0">Editar director</h1>
-    <div class="text-muted">ID: <?= $director->getId() ?></div>
-  </div>
+  <h1 class="h3 mb-0">Editar director</h1>
   <a class="btn btn-outline-secondary" href="list.php">Volver</a>
 </div>
 
@@ -51,35 +58,45 @@ require_once __DIR__ . "/../partials/header.php";
   <div class="alert alert-<?= $tipo ?>"><?= htmlspecialchars($mensaje) ?></div>
 <?php endif; ?>
 
-<div class="card shadow-sm">
-  <div class="card-body">
-    <form method="post" action="">
-      <input type="hidden" name="directorId" value="<?= $director->getId() ?>">
+<?php if ($director): ?>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="POST">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nombre <span class="text-danger">*</span></label>
+            <input type="text" name="nombre" class="form-control"
+                   value="<?= htmlspecialchars($nombre) ?>" required maxlength="100">
+          </div>
 
-      <div class="mb-3">
-        <label class="form-label">Nombre</label>
-        <input class="form-control" name="nombre" value="<?= htmlspecialchars($nombre) ?>" required autofocus>
-      </div>
+          <div class="col-md-6">
+            <label class="form-label">Apellidos <span class="text-danger">*</span></label>
+            <input type="text" name="apellidos" class="form-control"
+                   value="<?= htmlspecialchars($apellidos) ?>" required maxlength="120">
+          </div>
 
-      <div class="mb-3">
-        <label class="form-label">Apellidos</label>
-        <input class="form-control" name="apellidos" value="<?= htmlspecialchars($apellidos) ?>" required>
-      </div>
+          <div class="col-md-6">
+            <label class="form-label">Fecha nacimiento</label>
+            <input type="date" name="fecha_nacimiento" class="form-control"
+                   value="<?= htmlspecialchars($fechaNacimiento) ?>">
+          </div>
 
-      <div class="mb-3">
-        <label class="form-label">Fecha de nacimiento</label>
-        <input class="form-control" type="date" name="fecha_nacimiento" value="<?= htmlspecialchars($fecha) ?>">
-      </div>
+          <div class="col-md-6">
+            <label class="form-label">Nacionalidad</label>
+            <input type="text" name="nacionalidad" class="form-control"
+                   value="<?= htmlspecialchars($nacionalidad) ?>" maxlength="100">
+          </div>
+        </div>
 
-      <div class="mb-3">
-  <label class="form-label">Nacionalidad</label>
-  <input class="form-control" name="nacionalidad" value="<?= htmlspecialchars($nacionalidad) ?>">
-</div>
-
-      <button class="btn btn-primary" type="submit">Guardar cambios</button>
-      <a class="btn btn-outline-secondary" href="list.php">Cancelar</a>
-    </form>
+        <div class="mt-4 d-flex gap-2">
+          <button class="btn btn-primary" type="submit">Guardar cambios</button>
+          <a class="btn btn-outline-secondary" href="list.php">Cancelar</a>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
+<?php else: ?>
+  <a class="btn btn-outline-secondary" href="list.php">Volver al listado</a>
+<?php endif; ?>
 
 <?php require_once __DIR__ . "/../partials/footer.php"; ?>
