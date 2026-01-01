@@ -5,8 +5,8 @@ class Director
     private $id;
     private $nombre;
     private $apellidos;
-    private $fechaNacimiento; 
-    private $nacionalidad; 
+    private $fechaNacimiento;
+    private $nacionalidad;
 
     public function __construct($id = null, $nombre = null, $apellidos = null, $fechaNacimiento = null, $nacionalidad = null)
     {
@@ -24,14 +24,12 @@ class Director
     public function getFechaNacimiento() { return $this->fechaNacimiento; }
     public function getNacionalidad() { return $this->nacionalidad; }
 
-
     // Setters
     public function setId($id) { $this->id = $id; }
     public function setNombre($nombre) { $this->nombre = $nombre; }
     public function setApellidos($apellidos) { $this->apellidos = $apellidos; }
     public function setFechaNacimiento($fecha) { $this->fechaNacimiento = $fecha; }
-    public function setNacionalidad($nacionalidad) { $this->nacionalidad = $$nacionalidad; }
-
+    public function setNacionalidad($nacionalidad) { $this->nacionalidad = $nacionalidad; } // ✅ FIX
 
     private function connect()
     {
@@ -47,6 +45,20 @@ class Director
         ]);
     }
 
+  
+    // Validación BBDD: existencia
+
+    public function exists($id): bool
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->prepare("SELECT 1 FROM directores WHERE id = ? LIMIT 1");
+        $stmt->execute([$id]);
+        return (bool)$stmt->fetchColumn();
+    }
+
+
+    // CRUD
+
     public function getAll()
     {
         $pdo = $this->connect();
@@ -60,7 +72,7 @@ class Director
                 $row["nombre"],
                 $row["apellidos"],
                 $row["fecha_nacimiento"],
-                $row["nacionalidad"],
+                $row["nacionalidad"]
             );
         }
         return $items;
@@ -75,27 +87,67 @@ class Director
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) return null;
 
-        return new Director($row["id"], $row["nombre"], $row["apellidos"], $row["fecha_nacimiento"], $row["nacionalidad"]);
+        return new Director(
+            $row["id"],
+            $row["nombre"],
+            $row["apellidos"],
+            $row["fecha_nacimiento"],
+            $row["nacionalidad"]
+        );
     }
 
     public function create($nombre, $apellidos, $fechaNacimiento, $nacionalidad)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("INSERT INTO directores (nombre, apellidos, fecha_nacimiento, nacionalidad) VALUES (?, ?, ?, ?)");
-        return $stmt->execute([$nombre, $apellidos, $fechaNacimiento ?: null, $nacionalidad ?: null]);
+        // "" => NULL (más seguro que ?: )
+        if ($fechaNacimiento === "") $fechaNacimiento = null;
+        if ($nacionalidad === "") $nacionalidad = null;
+
+        try {
+            $pdo = $this->connect();
+            $stmt = $pdo->prepare("INSERT INTO directores (nombre, apellidos, fecha_nacimiento, nacionalidad) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$nombre, $apellidos, $fechaNacimiento, $nacionalidad]);
+            return true;
+        } catch (PDOException $e) {
+            throw $e;
+        }
     }
 
     public function update($id, $nombre, $apellidos, $fechaNacimiento, $nacionalidad)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("UPDATE directores SET nombre = ?, apellidos = ?, fecha_nacimiento = ?, nacionalidad = ? WHERE id = ?");
-        return $stmt->execute([$nombre, $apellidos, $fechaNacimiento ?: null, $nacionalidad ?: null, $id]);
+        if (!$this->exists($id)) {
+            throw new Exception("❌ No existe el director con id {$id}.");
+        }
+
+        if ($fechaNacimiento === "") $fechaNacimiento = null;
+        if ($nacionalidad === "") $nacionalidad = null;
+
+        try {
+            $pdo = $this->connect();
+            $stmt = $pdo->prepare("UPDATE directores SET nombre = ?, apellidos = ?, fecha_nacimiento = ?, nacionalidad = ? WHERE id = ?");
+            $stmt->execute([$nombre, $apellidos, $fechaNacimiento, $nacionalidad, $id]);
+            return true;
+        } catch (PDOException $e) {
+            throw $e;
+        }
     }
 
     public function delete($id)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("DELETE FROM directores WHERE id = ?");
-        return $stmt->execute([$id]);
+        if (!$this->exists($id)) {
+            throw new Exception("❌ No existe el director con id {$id}.");
+        }
+
+        try {
+            $pdo = $this->connect();
+            $stmt = $pdo->prepare("DELETE FROM directores WHERE id = ?");
+            $stmt->execute([$id]);
+            return true;
+        } catch (PDOException $e) {
+     
+            if ((int)($e->errorInfo[1] ?? 0) === 1451) {
+                throw new Exception("❌ No se puede borrar este director porque está asociado a una o más series.");
+            }
+            throw $e;
+        }
     }
 }
