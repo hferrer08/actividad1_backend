@@ -137,9 +137,6 @@ INSERT INTO idiomas (nombre, codigo) VALUES
 ('Inglés', 'en'),
 ('Francés', 'fr');
 
--- =========================================================
--- INSERTS DE PRUEBA (1 serie + relaciones)
--- =========================================================
 
 INSERT INTO series (titulo, sinopsis, anio, temporadas, director_id)
 VALUES (
@@ -155,9 +152,9 @@ INSERT INTO serie_actor (serie_id, actor_id) VALUES (1, 1);
 INSERT INTO serie_idioma_audio (serie_id, idioma_id) VALUES (1, 1);
 INSERT INTO serie_idioma_sub (serie_id, idioma_id) VALUES (1, 2);
 
--- =========================================================
--- COMPROBACIÓN RÁPIDA
--- =========================================================
+
+-- COMPROBAR
+
 
 SELECT s.id, s.titulo, d.nombre AS director_nombre, d.apellidos AS director_apellidos
 FROM series s
