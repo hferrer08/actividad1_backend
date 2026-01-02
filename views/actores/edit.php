@@ -6,13 +6,14 @@ $controller = new ActorController();
 $mensaje = null;
 $tipo = "success";
 
-if (!isset($_GET["id"])) {
+$id = isset($_GET["id"]) ? (int)$_GET["id"] : 0;
+$actor = null;
+
+if ($id <= 0) {
     $mensaje = "❌ Falta el parámetro id.";
     $tipo = "danger";
-    $actor = null;
 } else {
     try {
-        $id = $_GET["id"];
         $actor = $controller->getActor($id);
         if (!$actor) {
             $mensaje = "❌ No existe el actor con ese id.";
@@ -25,21 +26,21 @@ if (!isset($_GET["id"])) {
     }
 }
 
-// Valores iniciales para repintar
-$nombre = $actor["nombre"] ?? "";
-$apellidos = $actor["apellidos"] ?? "";
-$fechaNacimiento = $actor["fecha_nacimiento"] ?? "";
-$nacionalidad = $actor["nacionalidad"] ?? "";
+// Valores iniciales (si existe el actor)
+$nombre = $actor ? $actor->getNombre() : "";
+$apellidos = $actor ? $actor->getApellidos() : "";
+$fechaNacimiento = $actor ? $actor->getFechaNacimiento() : "";
+$nacionalidad = $actor ? $actor->getNacionalidad() : "";
 
+// POST: guardar cambios
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Tomar POST para repintar si falla
     $nombre = $_POST["nombre"] ?? "";
     $apellidos = $_POST["apellidos"] ?? "";
     $fechaNacimiento = $_POST["fecha_nacimiento"] ?? "";
     $nacionalidad = $_POST["nacionalidad"] ?? "";
 
     try {
-        $controller->updateActor($_GET["id"], $nombre, $apellidos, $fechaNacimiento, $nacionalidad);
+        $controller->updateActor($id, $nombre, $apellidos, $fechaNacimiento, $nacionalidad);
         header("Location: list.php");
         exit;
     } catch (Throwable $e) {
@@ -58,36 +59,59 @@ require_once __DIR__ . "/../partials/header.php";
 </div>
 
 <?php if ($mensaje): ?>
-  <div class="alert alert-<?= $tipo ?>"><?= htmlspecialchars($mensaje) ?></div>
+  <div class="alert alert-<?= htmlspecialchars($tipo) ?>">
+    <?= htmlspecialchars($mensaje) ?>
+  </div>
 <?php endif; ?>
 
 <?php if ($actor): ?>
   <div class="card shadow-sm">
     <div class="card-body">
-      <form method="POST">
+      <form method="POST" novalidate>
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label">Nombre <span class="text-danger">*</span></label>
-            <input type="text" name="nombre" class="form-control"
-                   value="<?= htmlspecialchars($nombre) ?>" required maxlength="100">
+            <input
+              type="text"
+              name="nombre"
+              class="form-control"
+              value="<?= htmlspecialchars($nombre) ?>"
+              required
+              maxlength="100"
+            >
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Apellidos <span class="text-danger">*</span></label>
-            <input type="text" name="apellidos" class="form-control"
-                   value="<?= htmlspecialchars($apellidos) ?>" required maxlength="120">
+            <input
+              type="text"
+              name="apellidos"
+              class="form-control"
+              value="<?= htmlspecialchars($apellidos) ?>"
+              required
+              maxlength="120"
+            >
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Fecha nacimiento</label>
-            <input type="date" name="fecha_nacimiento" class="form-control"
-                   value="<?= htmlspecialchars($fechaNacimiento) ?>">
+            <input
+              type="date"
+              name="fecha_nacimiento"
+              class="form-control"
+              value="<?= htmlspecialchars($fechaNacimiento) ?>"
+            >
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Nacionalidad</label>
-            <input type="text" name="nacionalidad" class="form-control"
-                   value="<?= htmlspecialchars($nacionalidad) ?>" maxlength="100">
+            <input
+              type="text"
+              name="nacionalidad"
+              class="form-control"
+              value="<?= htmlspecialchars($nacionalidad) ?>"
+              maxlength="100"
+            >
           </div>
         </div>
 
