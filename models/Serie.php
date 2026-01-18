@@ -1,6 +1,8 @@
 <?php
 
-class Serie
+require_once "DBconnect.php";
+
+class Serie extends DBconnect
 {
     private $id;
     private $titulo;
@@ -10,6 +12,7 @@ class Serie
 
     public function __construct($id = null, $titulo = null, $sinopsis = null, $anio = null, $temporadas = null)
     {
+        parent::__construct();
         $this->id = $id;
         $this->titulo = $titulo;
         $this->sinopsis = $sinopsis;

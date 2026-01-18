@@ -1,6 +1,8 @@
 <?php
 
-class Idioma
+require_once "DBconnect.php";
+
+class Idioma extends DBconnect
 {
     private $id;
     private $nombre;
@@ -8,6 +10,7 @@ class Idioma
 
     public function __construct($id = null, $nombre = null, $codigo = null)
     {
+        parent::__construct();
         $this->id = $id;
         $this->nombre = $nombre;
         $this->codigo = $codigo;
@@ -21,32 +24,20 @@ class Idioma
     public function setNombre($nombre) { $this->nombre = $nombre; }
     public function setCodigo($codigo) { $this->codigo = $codigo; }
 
-    private function connect()
-    {
-        $host = "localhost";
-        $db   = "actividad1_backend";
-        $user = "root";
-        $pass = "";
-        $charset = "utf8mb4";
-
-        $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-        return new PDO($dsn, $user, $pass, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]);
-    }
+    
 
     public function exists($id): bool
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("SELECT 1 FROM idiomas WHERE id = ? LIMIT 1");
+        
+        $stmt = $this->db->prepare("SELECT 1 FROM idiomas WHERE id = ? LIMIT 1");
         $stmt->execute([$id]);
         return (bool)$stmt->fetchColumn();
     }
 
     public function getByCodigo($codigo)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("SELECT id, nombre, codigo FROM idiomas WHERE codigo = ? LIMIT 1");
+        
+        $stmt = $this->db->prepare("SELECT id, nombre, codigo FROM idiomas WHERE codigo = ? LIMIT 1");
         $stmt->execute([$codigo]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) return null;
@@ -55,8 +46,8 @@ class Idioma
 
     public function getByNombre($nombre)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("SELECT id, nombre, codigo FROM idiomas WHERE nombre = ? LIMIT 1");
+        
+        $stmt = $this->db->prepare("SELECT id, nombre, codigo FROM idiomas WHERE nombre = ? LIMIT 1");
         $stmt->execute([$nombre]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) return null;
@@ -65,8 +56,8 @@ class Idioma
 
     public function getAll()
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("SELECT id, nombre, codigo FROM idiomas ORDER BY id");
+        
+        $stmt = $this->db->prepare("SELECT id, nombre, codigo FROM idiomas ORDER BY id");
         $stmt->execute();
 
         $items = [];
@@ -78,8 +69,8 @@ class Idioma
 
     public function getById($id)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("SELECT id, nombre, codigo FROM idiomas WHERE id = ?");
+        
+        $stmt = $this->db->prepare("SELECT id, nombre, codigo FROM idiomas WHERE id = ?");
         $stmt->execute([$id]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -99,8 +90,8 @@ class Idioma
         }
 
         try {
-            $pdo = $this->connect();
-            $stmt = $pdo->prepare("INSERT INTO idiomas (nombre, codigo) VALUES (?, ?)");
+           
+            $stmt = $this->db->prepare("INSERT INTO idiomas (nombre, codigo) VALUES (?, ?)");
             $stmt->execute([$nombre, $codigo]);
             return true;
         } catch (PDOException $e) {
@@ -131,8 +122,8 @@ class Idioma
         }
 
         try {
-            $pdo = $this->connect();
-            $stmt = $pdo->prepare("UPDATE idiomas SET nombre = ?, codigo = ? WHERE id = ?");
+            
+            $stmt = $this->db->prepare("UPDATE idiomas SET nombre = ?, codigo = ? WHERE id = ?");
             $stmt->execute([$nombre, $codigo, $id]);
             return true;
         } catch (PDOException $e) {
@@ -150,8 +141,8 @@ class Idioma
     }
 
     try {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("DELETE FROM idiomas WHERE id = ?");
+        
+        $stmt = $this->db->prepare("DELETE FROM idiomas WHERE id = ?");
         $stmt->execute([$id]);
         return true;
     } catch (PDOException $e) {

@@ -1,6 +1,8 @@
 <?php
 
-class Actor
+require_once 'DBconnect.php';
+
+class Actor extends DBconnect
 {
     private $id;
     private $nombre;
@@ -10,6 +12,7 @@ class Actor
 
     public function __construct($id = null, $nombre = null, $apellidos = null, $fechaNacimiento = null, $nacionalidad = null)
     {
+        parent::__construct(); 
         $this->id = $id;
         $this->nombre = $nombre;
         $this->apellidos = $apellidos;
@@ -31,26 +34,14 @@ class Actor
     public function setFechaNacimiento($fecha) { $this->fechaNacimiento = $fecha; }
     public function setNacionalidad($nacionalidad) { $this->nacionalidad = $nacionalidad; }
 
-    private function connect()
-    {
-        $host = "localhost";
-        $db   = "actividad1_backend";
-        $user = "root";
-        $pass = "";
-        $charset = "utf8mb4";
-
-        $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-        return new PDO($dsn, $user, $pass, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]);
-    }
+    
 
     // Validación BBDD: existencia
 
     public function exists($id): bool
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("SELECT 1 FROM actores WHERE id = ? LIMIT 1");
+        
+        $stmt = $this->db->prepare("SELECT 1 FROM actores WHERE id = ? LIMIT 1");
         $stmt->execute([$id]);
         return (bool)$stmt->fetchColumn();
     }
@@ -60,8 +51,8 @@ class Actor
 
     public function getAll()
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("SELECT id, nombre, apellidos, fecha_nacimiento, nacionalidad FROM actores ORDER BY id");
+        
+        $stmt = $this->db->prepare("SELECT id, nombre, apellidos, fecha_nacimiento, nacionalidad FROM actores ORDER BY id");
         $stmt->execute();
 
         $items = [];
@@ -79,8 +70,8 @@ class Actor
 
     public function getById($id)
     {
-        $pdo = $this->connect();
-        $stmt = $pdo->prepare("SELECT id, nombre, apellidos, fecha_nacimiento, nacionalidad FROM actores WHERE id = ?");
+        
+        $stmt = $this->db->prepare("SELECT id, nombre, apellidos, fecha_nacimiento, nacionalidad FROM actores WHERE id = ?");
         $stmt->execute([$id]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -102,8 +93,8 @@ class Actor
         if ($nacionalidad === "") $nacionalidad = null;
 
         try {
-            $pdo = $this->connect();
-            $stmt = $pdo->prepare("INSERT INTO actores (nombre, apellidos, fecha_nacimiento, nacionalidad) VALUES (?, ?, ?, ?)");
+            
+            $stmt = $this->db->prepare("INSERT INTO actores (nombre, apellidos, fecha_nacimiento, nacionalidad) VALUES (?, ?, ?, ?)");
             $stmt->execute([$nombre, $apellidos, $fechaNacimiento, $nacionalidad]);
             return true;
         } catch (PDOException $e) {
@@ -122,8 +113,8 @@ class Actor
         if ($nacionalidad === "") $nacionalidad = null;
 
         try {
-            $pdo = $this->connect();
-            $stmt = $pdo->prepare("UPDATE actores SET nombre = ?, apellidos = ?, fecha_nacimiento = ?, nacionalidad = ? WHERE id = ?");
+            
+            $stmt = $this->db->prepare("UPDATE actores SET nombre = ?, apellidos = ?, fecha_nacimiento = ?, nacionalidad = ? WHERE id = ?");
             $stmt->execute([$nombre, $apellidos, $fechaNacimiento, $nacionalidad, $id]);
             return true;
         } catch (PDOException $e) {
@@ -138,8 +129,8 @@ class Actor
         }
 
         try {
-            $pdo = $this->connect();
-            $stmt = $pdo->prepare("DELETE FROM actores WHERE id = ?");
+            
+            $stmt = $this->db->prepare("DELETE FROM actores WHERE id = ?");
             $stmt->execute([$id]);
             return true;
         } catch (PDOException $e) {
